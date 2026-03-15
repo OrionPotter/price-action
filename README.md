@@ -1,10 +1,10 @@
-# PA-Lens
+# price-action
 
 A股K线数据获取与价格行为分析工具。
 
 ## 简介
 
-PA-Lens 从东方财富获取A股K线数据，计算技术指标，输出结构化JSON供AI分析使用。
+price-action 从东方财富获取A股K线数据，计算技术指标，输出结构化JSON供AI分析使用。
 
 **核心功能：**
 - 获取日K/周K/月K数据
