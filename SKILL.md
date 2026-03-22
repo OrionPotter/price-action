@@ -26,6 +26,20 @@ description: |
 
 ## 快速开始
 
+### 安装依赖
+
+建议使用 `requirements.txt` 安装（便于复现）：
+
+```bash
+pip install -r requirements.txt
+```
+
+或手动安装：
+
+```bash
+pip install pandas requests
+```
+
 ### 获取K线数据
 
 ```bash
@@ -340,3 +354,10 @@ python scripts/fetch_kline.py 601919 60 weekly    # 中远海控60根周K
 | `references/entries.md` | 入场模式详细说明、信号棒标准 | 寻找入场点时 |
 | `references/risk.md` | 风险管理、仓位计算、止盈止损 | 计算止损止盈时 |
 | `references/volume.md` | 量价分析、突破确认、量价背离 | 验证信号有效性时 |
+
+---
+
+## 编码说明（Windows 常见乱码问题）
+
+- 本仓库文档建议以 **UTF-8** 打开/保存。
+- 如果你在 Windows PowerShell 里查看 `SKILL.md` 出现乱码，建议使用：`Get-Content -Encoding UTF8 .\\SKILL.md`。

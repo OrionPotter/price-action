@@ -16,6 +16,9 @@ price-action 从东方财富获取A股K线数据，计算技术指标，输出�
 ## 安装
 
 ```bash
+pip install -r requirements.txt
+
+# 或者
 pip install pandas requests
 ```
 
@@ -119,6 +122,3 @@ price-action/
 - pandas
 - requests
 
-## License
-
-MIT
