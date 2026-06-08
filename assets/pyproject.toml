@@ -1,0 +1,17 @@
+[project]
+name = "price-action"
+version = "1.0.0"
+description = "A股K线数据获取与价格行为分析工具"
+requires-python = ">=3.8"
+dependencies = [
+    "pandas>=2.0",
+    "requests>=2.31",
+    "click>=8.0",
+]
+
+[project.scripts]
+pa = "price_action:cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

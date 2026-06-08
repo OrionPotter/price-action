@@ -4,7 +4,7 @@ A股K线数据获取与价格行为分析工具。
 
 ## 简介
 
-price-action 从东方财富获取A股K线数据，计算技术指标，输出结构化JSON供AI分析使用。
+price-action 从同花顺获取A股K线数据，计算技术指标，输出结构化JSON供AI分析使用。
 
 **核心功能：**
 - 获取日K/周K/月K数据
@@ -13,32 +13,79 @@ price-action 从东方财富获取A股K线数据，计算技术指标，输出�
 - 检测跳空缺口
 - 标记涨跌停
 
-## 安装
+## 架构
 
-```bash
-pip install -r requirements.txt
+本项目采用 **python-tool-skill** 架构，基于 uvx 运行，无需管理虚拟环境：
 
-# 或者
-pip install pandas requests
+```
+price-action/
+├── SKILL.md              # 触发描述 + agent 指令
+├── assets/
+│   ├── price_action.py   # Click CLI 入口
+│   ├── pyproject.toml    # 项目配置
+│   └── uv.lock           # 锁定依赖
+└── references/           # 价格行为分析参考资料
 ```
 
 ## 使用
 
-```bash
-# 基本用法
-python scripts/fetch_kline.py <股票代码> [K线数量] [周期]
+### 前置要求
 
-# 示例
-python scripts/fetch_kline.py 600000              # 日K 60根
-python scripts/fetch_kline.py 600000 120          # 日K 120根
-python scripts/fetch_kline.py 600000 60 weekly    # 周K 60根
-python scripts/fetch_kline.py 000021 80 monthly   # 月K 80根
+需要安装 [uv](https://docs.astral.sh/uv/getting-started/installation/)：
+
+```bash
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-**参数说明：**
-- `股票代码`: 6位数字或带前缀，如 600000、sh600000、sz000001
-- `K线数量`: 20-250，默认 60
-- `周期`: daily(日K) / weekly(周K) / monthly(月K)，默认 daily
+### 命令
+
+```bash
+# 获取K线数据，默认日线 60 根
+uvx --from ./assets pa kline <股票代码> [选项]
+
+# 获取股票基本信息
+uvx --from ./assets pa info <股票代码>
+
+# 查看帮助
+uvx --from ./assets pa --help
+uvx --from ./assets pa kline --help
+```
+
+### K线命令参数
+
+| 参数 | 说明 |
+|------|------|
+| `CODE` | 股票代码，支持 sh/sz/bj 前缀 |
+| `--count, -n` | K线数量 (20-250)，默认 60 根 |
+| `--period, -p` | 周期: daily/weekly/monthly，默认 daily（日线） |
+| `--market, -m` | 手动指定同花顺 market 编号 |
+| `--compact, -c` | 紧凑输出（无缩进） |
+
+### 示例
+
+```bash
+# 默认：日K 60根
+uvx --from ./assets pa kline 600000
+
+# 日K 120根
+uvx --from ./assets pa kline 000021 -n 120
+
+# 周K 60根
+uvx --from ./assets pa kline 601919 -p weekly
+
+# 月K 80根
+uvx --from ./assets pa kline 000021 -n 80 -p monthly
+
+# 紧凑输出
+uvx --from ./assets pa kline 600000 -c
+
+# 获取股票信息
+uvx --from ./assets pa info 600000
+```
 
 ## 输出示例
 
@@ -101,24 +148,16 @@ python scripts/fetch_kline.py 000021 80 monthly   # 月K 80根
 | `doji` | 十字星：实体占比<10% |
 | `neutral` | 中性：不符合以上条件 |
 
-## 目录结构
+## 为什么选择 python-tool-skill 架构？
 
-```
-price-action/
-├── scripts/
-│   └── fetch_kline.py    # K线数据获取脚本
-├── references/           # 价格行为分析参考资料
-│   ├── candles.md        # K线形态
-│   ├── entries.md        # 入场策略
-│   ├── risk.md           # 风险管理
-│   ├── volume.md         # 成交量分析
-│   └── cycles.md         # 市场周期
-└── SKILL.md              # 项目说明
-```
+基于 [Al McClelland 的文章](https://almcc.me/blog/python-cli-skills/)，python-tool-skill 相比 MCP 服务器有以下优势：
 
-## 依赖
+- **无需管理虚拟环境**：uvx 自动处理包隔离
+- **可独立测试**：工具就是 CLI，可直接在终端运行
+- **渐进式发现**：通过 `--help` 按需加载，节省 ~94% tokens
+- **可移植**：任何支持 CLI 的 agent 都能使用
 
-- Python 3.8+
-- pandas
-- requests
+## 参考
 
+- [An Alternative to MCP: Python CLI-Based Agent Skills](https://almcc.me/blog/python-cli-skills/)
+- [uv 官方文档](https://docs.astral.sh/uv/)

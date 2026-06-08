@@ -26,36 +26,24 @@ description: |
 
 ## 快速开始
 
-### 安装依赖
-
-建议使用 `requirements.txt` 安装（便于复现）：
-
-```bash
-pip install -r requirements.txt
-```
-
-或手动安装：
-
-```bash
-pip install pandas requests
-```
-
 ### 获取K线数据
 
 ```bash
-python scripts/fetch_kline.py <股票代码> [K线数量] [周期]
+uvx --from ./assets pa kline <股票代码> [选项]
 ```
 
 参数说明：
 - 股票代码：6位数字或带前缀（sh/sz/bj），如 `600000`、`sh600000`
-- K线数量：20-250，默认 60
-- 周期：`daily`（日K，默认）/ `weekly`（周K）/ `monthly`（月K）
+- `--count, -n`：K线数量 (20-250)，默认 60
+- `--period, -p`：周期 `daily`/`weekly`/`monthly`，默认 daily
+- `--compact, -c`：紧凑输出（无缩进）
 
 示例：
 ```bash
-python scripts/fetch_kline.py 600000              # 浦发银行最近60根日K
-python scripts/fetch_kline.py 000021 120          # 深科技120根日K
-python scripts/fetch_kline.py 601919 60 weekly    # 中远海控60根周K
+uvx --from ./assets pa kline 601919              # 中远海控最近60根日K
+uvx --from ./assets pa kline 601919 -n 120       # 中远海控120根日K
+uvx --from ./assets pa kline 601919 -p weekly    # 中远海控60根周K
+uvx --from ./assets pa info 601919               # 获取股票基本信息
 ```
 
 输出 JSON 格式，包含开高低收量等基础数据及多种计算字段。字段为英文命名，分析输出时必须翻译为中文（见下方对照表）。
@@ -109,7 +97,7 @@ python scripts/fetch_kline.py 601919 60 weekly    # 中远海控60根周K
 | 交易区间 | 日线区间下沿做多 | 周线区间内日线高抛低吸 |
 
 操作方法：
-1. 先获取周K线数据：`python scripts/fetch_kline.py <代码> 60 weekly`
+1. 先获取周K线数据：`uvx --from ./assets pa kline <代码> -p weekly`
 2. 判断周线所处周期（交易区间 / 通道 / 突破）
 3. 周线方向为下降时，不分析日线，直接建议观望
 4. 周线方向为上升或区间时，获取日K线做精细分析
@@ -360,4 +348,4 @@ python scripts/fetch_kline.py 601919 60 weekly    # 中远海控60根周K
 ## 编码说明（Windows 常见乱码问题）
 
 - 本仓库文档建议以 **UTF-8** 打开/保存。
-- 如果你在 Windows PowerShell 里查看 `SKILL.md` 出现乱码，建议使用：`Get-Content -Encoding UTF8 .\\SKILL.md`。
+- 如果你在 Windows PowerShell 里查看 `SKILL.md` 出现乱码，建议使用：`Get-Content -Encoding UTF8 .\SKILL.md`。
