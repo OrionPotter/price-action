@@ -36,6 +36,7 @@ THS_APP_KEY = "2f33f4f729"
 THS_APP_VERSION = "148.0.0.0"
 THS_LOG_VERSION = "0.0.2"
 THS_AUTH_REFRESH_MARGIN = timedelta(minutes=5)
+MARKET_TZ = timezone(timedelta(hours=8))
 
 _FUYAO_AUTH_TOKEN: Optional[str] = None
 _FUYAO_AUTH_EXPIRY: Optional[datetime] = None
@@ -298,7 +299,8 @@ def derive_dataframe_from_quote(quote_item: dict) -> Optional[pd.DataFrame]:
         ts = field_map.get("1", row[0])
         rows.append(
             {
-                "date": datetime.fromtimestamp(int(ts) / 1000, tz=timezone.utc).strftime("%Y-%m-%d"),
+                # 行情时间戳按中国市场时区解释，避免 UTC 格式化导致日期回退一天。
+                "date": datetime.fromtimestamp(int(ts) / 1000, tz=MARKET_TZ).strftime("%Y-%m-%d"),
                 "open": float(field_map.get("7", row[1])),
                 "high": float(field_map.get("8", row[2])),
                 "low": float(field_map.get("9", row[3])),
