@@ -1,49 +1,51 @@
----
-
 # price-action
 
 [🌐 简体中文](./README-cn.md) | **English**
 
-An A-share candlestick data retrieval and Price Action analysis tool, optimized for AI agent workflows.
+An A-share, Hong Kong stock, and US stock candlestick retrieval and Price Action analysis tool, optimized for AI agent workflows.
 
 ---
 
-## 📝 Introduction
+## Introduction
 
-`price-action` fetches A-share K-line data directly from Flush (同花顺), calculates core technical indicators, and outputs structured JSON data specifically optimized for AI agent analysis.
+`price-action` fetches K-line data from multiple public market data providers, calculates core technical indicators, and outputs structured JSON that is easy for agents to consume.
 
-**Core Features:**
+Default source routing:
+- China A-shares: `ths -> tencent -> eastmoney`
+- Hong Kong stocks: `tencent -> eastmoney`
+- US stocks: `tencent -> eastmoney`
 
-* **Multi-Timeframe Retrieval:** Fetch daily, weekly, or monthly candlestick data.
-* **Dynamic Trend Moving Averages:** Calculate EMA20 along with its current slope and distance relative to price.
-* **Price Action Pattern Recognition:** Automatically classify candlestick types (e.g., `trend_bull`, `trend_bear`, `signal_bull`, `signal_bear`, `inside_bar`, `outside_bar`, `doji`).
-* **Gap Detection:** Identify runaway, breakaway, or general market gaps.
-* **Limit Moves:** Flag price ceilings and floors (Limit Up / Limit Down).
+Core capabilities:
+- Fetch daily, weekly, and monthly candles
+- Auto-detect `cn` / `hk` / `us` symbols or force a market explicitly
+- Compute `EMA20`, slope, and price distance from EMA
+- Classify candlestick patterns such as `trend_bull`, `signal_bear`, `inside_bar`, and `outside_bar`
+- Detect gap bars
+- Mark limit up / limit down only for China A-shares
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
-This project strictly follows the **python-tool-skill** architecture pattern. It leverages `uvx` to execute commands seamlessly without requiring manual virtual environment configuration:
+This project follows the `python-tool-skill` pattern and is designed to run through `uvx` without manual virtual environment setup.
 
 ```text
 price-action/
-├── SKILL.md              # Trigger descriptions + Agent specific instructions
+├── SKILL.md              # Trigger descriptions + agent instructions
 ├── assets/
-│   ├── price_action.py   # Click-based CLI entry point
-│   ├── pyproject.toml    # Project configurations & metadata
+│   ├── price_action.py   # Click CLI entrypoint
+│   ├── pyproject.toml    # Project metadata
 │   └── uv.lock           # Locked dependencies
-└── references/           # Price action educational and reference materials
-
+└── references/           # Price action reference material
 ```
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
-You need to have [uv](https://docs.astral.sh/uv/getting-started/installation/) installed on your machine:
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/):
 
 ```bash
 # Windows (PowerShell)
@@ -51,137 +53,161 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 
 # macOS/Linux
 curl -LsSf https://astral.sh/uv/install.sh | sh
-
 ```
 
 ### Commands
 
 ```bash
-# Fetch K-line data (Defaults to 60 daily bars)
-uvx --from ./assets pa kline <STOCK_CODE> [OPTIONS]
+# Fetch K-line data, default: 60 daily bars
+uvx --from ./assets pa kline <SYMBOL> [OPTIONS]
 
-# Fetch fundamental stock profile information
-uvx --from ./assets pa info <STOCK_CODE>
+# Fetch security profile information
+uvx --from ./assets pa info <SYMBOL>
 
-# Access built-in documentation and help menus
+# Help
 uvx --from ./assets pa --help
 uvx --from ./assets pa kline --help
-
 ```
 
-### Candlestick Command Options
+### `kline` Options
 
 | Option | Description |
 | --- | --- |
-| `CODE` | Stock code (supports `sh`/`sz`/`bj` prefixes) |
-| `--count, -n` | Number of candlesticks (`20`–`250`), default: `60` |
-| `--period, -p` | Timeframe interval: `daily`/`weekly`/`monthly`, default: `daily` |
-| `--market, -m` | Manually override Flush (同花顺) market ID |
-| `--compact, -c` | Minimize and compress JSON output (removes indentation) |
+| `CODE` | Symbol, supports `sh` / `sz` / `bj` / `hk` / `us` prefixes |
+| `--count, -n` | Number of candles, range `20-250`, default `60` |
+| `--period, -p` | `daily` / `weekly` / `monthly` |
+| `--market-type` | `auto` / `cn` / `hk` / `us` |
+| `--source` | `auto` / `ths` / `tencent` / `eastmoney` |
+| `--market, -m` | Manual Flush market id override, only valid for `cn + ths` |
+| `--compact, -c` | Compact JSON output |
 
-### Usage Examples
+### Examples
 
 ```bash
-# Default: 60 Daily bars
+# China A-share
 uvx --from ./assets pa kline 600000
 
-# 120 Daily bars
-uvx --from ./assets pa kline 000021 -n 120
-
-# 60 Weekly bars
+# China A-share weekly candles
 uvx --from ./assets pa kline 601919 -p weekly
 
-# 80 Monthly bars
-uvx --from ./assets pa kline 000021 -n 80 -p monthly
+# Hong Kong stock: Tencent
+uvx --from ./assets pa kline 00700 --market-type hk
 
-# Minified compact JSON output
-uvx --from ./assets pa kline 600000 -c
+# Hong Kong stock: COSCO SHIPPING Holdings
+uvx --from ./assets pa kline 01919 --market-type hk
 
-# Get specific stock information
+# US stock: Apple
+uvx --from ./assets pa kline AAPL --market-type us
+
+# Force Tencent as the provider
+uvx --from ./assets pa kline MSFT --market-type us --source tencent
+
+# Security info
 uvx --from ./assets pa info 600000
-
+uvx --from ./assets pa info 01919 --market-type hk
+uvx --from ./assets pa info AAPL --market-type us
 ```
 
 ---
 
-## 📊 JSON Output Schema
+## JSON Output
 
 ```json
 {
-  "code": "600900",
-  "name": "长江电力",
+  "code": "000895",
+  "name": "Shuanghui Development",
+  "market": "cn",
+  "source": "ths",
   "period": "daily",
   "count": 20,
   "klines": [
     {
-      "date": "2026-03-13",
-      "open": 27.5,
-      "high": 27.63,
-      "low": 27.35,
-      "close": 27.42,
-      "volume": 942776,
-      "amount": 2590387280.0,
-      "change_pct": -0.29,
-      "turnover": 0.39,
-      "amplitude": 1.02,
-      "ema20": 26.83,
-      "ema20_slope": 0.262,
-      "ema20_distance": 2.2,
-      "body_ratio": 0.29,
-      "upper_wick_ratio": 0.46,
-      "lower_wick_ratio": 0.25,
-      "close_position": 0.25,
-      "bar_type": "signal_bear"
+      "date": "2026-07-03",
+      "open": 25.78,
+      "high": 26.10,
+      "low": 25.72,
+      "close": 26.02,
+      "volume": 845321,
+      "amount": 219845340.0,
+      "change_pct": 0.93,
+      "turnover": 0.0,
+      "amplitude": 1.46,
+      "ema20": 25.61,
+      "ema20_slope": 0.188,
+      "ema20_distance": 1.6,
+      "body_ratio": 0.63,
+      "upper_wick_ratio": 0.21,
+      "lower_wick_ratio": 0.16,
+      "close_position": 0.79,
+      "bar_type": "trend_bull"
     }
   ]
 }
-
 ```
 
-### Field Definitions
+Top-level fields:
+- `code`: normalized symbol
+- `name`: security name
+- `market`: `cn`, `hk`, or `us`
+- `source`: provider actually used
+- `period`: timeframe
+- `count`: number of returned bars
+- `klines`: candle array
 
-| Field | Definition |
+Per-bar fields:
+- `date`: trading date
+- `open` / `high` / `low` / `close`
+- `volume`
+- `amount`
+- `change_pct`
+- `turnover`
+- `amplitude`
+- `ema20`
+- `ema20_slope`
+- `ema20_distance`
+- `body_ratio`
+- `upper_wick_ratio`
+- `lower_wick_ratio`
+- `close_position`
+- `bar_type`
+- `gap`: only present when a gap exists
+- `limit`: only present for China A-shares
+
+---
+
+## Pattern Classification
+
+| Pattern | Rule |
 | --- | --- |
-| `ema20` | 20-period Exponential Moving Average |
-| `ema20_slope` | EMA20 slope representing percentage rate of change |
-| `ema20_distance` | Percentage distance from the closing price to the EMA20 |
-| `body_ratio` | Ratio of the candlestick body relative to the entire high-low range |
-| `upper_wick_ratio` | Ratio of the upper shadow line |
-| `lower_wick_ratio` | Ratio of the lower shadow line |
-| `close_position` | Relative closing price position within the bar (`0` = absolute low, `1` = absolute high) |
-| `bar_type` | Calculated price action pattern classification |
-| `gap` | Dynamic price gaps (`gap_up` / `gap_down`) |
-| `limit` | Locked limit board tags (`limit_up` / `limit_down`) |
+| `trend_bull` | body >= 60%, close position >= 50% |
+| `trend_bear` | body >= 60%, close position <= 50% |
+| `signal_bull` | lower wick > body, close position > 40% |
+| `signal_bear` | upper wick > body, close position < 60% |
+| `inside_bar` | current high < previous high and current low > previous low |
+| `outside_bar` | current high > previous high and current low < previous low |
+| `doji` | body ratio < 10% |
+| `neutral` | none of the above |
 
 ---
 
-## 🕯️ Price Action Classifications
+## Symbol Rules
 
-| Pattern Type | Technical Conditions |
-| --- | --- |
-| `trend_bull` | **Trend Bullish:** Body $\ge$ 60%, closing position $\ge$ 50% |
-| `trend_bear` | **Trend Bearish:** Body $\ge$ 60%, closing position $\le$ 50% |
-| `signal_bull` | **Signal Bullish (Pinbar):** Lower wick > body, closing position > 40% |
-| `signal_bear` | **Signal Bearish (Pinbar):** Upper wick > body, closing position < 60% |
-| `inside_bar` | **Inside Bar:** Current High < Previous High, Current Low > Previous Low |
-| `outside_bar` | **Outside Bar:** Current High > Previous High, Current Low < Previous Low |
-| `doji` | **Doji Star:** Candlestick body ratio < 10% |
-| `neutral` | **Neutral:** Price action does not satisfy any pattern criteria above |
+- China A-shares are usually 6-digit numeric symbols such as `600000` or `000895`
+- Hong Kong symbols are usually 5-digit numeric symbols; short inputs like `700` are zero-padded to `00700`
+- US symbols are typically alphabetic tickers such as `AAPL` or `MSFT`
+- Explicit prefixed forms also work: `sh600000`, `hk01919`, `usAAPL`
 
 ---
 
-## 💡 Why python-tool-skill Architecture?
+## Notes
 
-Inspired by [Al McClelland's framework](https://almcc.me/blog/python-cli-skills/), adopting a native `python-tool-skill` architecture offers massive advantages over typical MCP (Model Context Protocol) servers:
-
-* **Zero Environment Hell:** `uvx` isolates and executes packages dynamically out-of-the-box.
-* **Independent Testing Ecosystem:** The core skills are simple CLI commands that can be fully simulated and verified right inside your terminal.
-* **Progressive Discovery Optimization:** By querying sub-menus only via `--help` variables, it trims prompt tokens by up to **94%**.
-* **Universal Portability:** Works out of the box with any advanced AI agent capable of invoking a standard command-line interface.
+- Limit up / limit down detection is only applied to China A-shares
+- Turnover and amount values depend on the provider and may be unavailable for some markets
+- The CLI automatically falls back to alternate providers when the preferred source fails
 
 ---
 
-## 🔗 References
+## References
 
-* [An Alternative to MCP: Python CLI-Based Agent Skills](https://almcc.me/blog/python-cli-skills/)
-* [Official Astral uv Documentation](https://docs.astral.sh/uv/)
+- [An Alternative to MCP: Python CLI-Based Agent Skills](https://almcc.me/blog/python-cli-skills/)
+- [Official Astral uv Documentation](https://docs.astral.sh/uv/)
