@@ -1,37 +1,49 @@
+---
+
 # price-action
 
-A股K线数据获取与价格行为分析工具。
+[🌐 简体中文](./README-cn.md) | **English**
 
-## 简介
+An A-share candlestick data retrieval and Price Action analysis tool, optimized for AI agent workflows.
 
-price-action 从同花顺获取A股K线数据，计算技术指标，输出结构化JSON供AI分析使用。
+---
 
-**核心功能：**
-- 获取日K/周K/月K数据
-- 计算 EMA20 及其斜率、距离
-- 识别K线形态（trend_bull、trend_bear、signal_bull、signal_bear、inside_bar、outside_bar、doji 等）
-- 检测跳空缺口
-- 标记涨跌停
+## 📝 Introduction
 
-## 架构
+`price-action` fetches A-share K-line data directly from Flush (同花顺), calculates core technical indicators, and outputs structured JSON data specifically optimized for AI agent analysis.
 
-本项目采用 **python-tool-skill** 架构，基于 uvx 运行，无需管理虚拟环境：
+**Core Features:**
 
-```
+* **Multi-Timeframe Retrieval:** Fetch daily, weekly, or monthly candlestick data.
+* **Dynamic Trend Moving Averages:** Calculate EMA20 along with its current slope and distance relative to price.
+* **Price Action Pattern Recognition:** Automatically classify candlestick types (e.g., `trend_bull`, `trend_bear`, `signal_bull`, `signal_bear`, `inside_bar`, `outside_bar`, `doji`).
+* **Gap Detection:** Identify runaway, breakaway, or general market gaps.
+* **Limit Moves:** Flag price ceilings and floors (Limit Up / Limit Down).
+
+---
+
+## 🏗️ Architecture
+
+This project strictly follows the **python-tool-skill** architecture pattern. It leverages `uvx` to execute commands seamlessly without requiring manual virtual environment configuration:
+
+```text
 price-action/
-├── SKILL.md              # 触发描述 + agent 指令
+├── SKILL.md              # Trigger descriptions + Agent specific instructions
 ├── assets/
-│   ├── price_action.py   # Click CLI 入口
-│   ├── pyproject.toml    # 项目配置
-│   └── uv.lock           # 锁定依赖
-└── references/           # 价格行为分析参考资料
+│   ├── price_action.py   # Click-based CLI entry point
+│   ├── pyproject.toml    # Project configurations & metadata
+│   └── uv.lock           # Locked dependencies
+└── references/           # Price action educational and reference materials
+
 ```
 
-## 使用
+---
 
-### 前置要求
+## 🚀 Getting Started
 
-需要安装 [uv](https://docs.astral.sh/uv/getting-started/installation/)：
+### Prerequisites
+
+You need to have [uv](https://docs.astral.sh/uv/getting-started/installation/) installed on your machine:
 
 ```bash
 # Windows (PowerShell)
@@ -39,55 +51,60 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 
 # macOS/Linux
 curl -LsSf https://astral.sh/uv/install.sh | sh
+
 ```
 
-### 命令
+### Commands
 
 ```bash
-# 获取K线数据，默认日线 60 根
-uvx --from ./assets pa kline <股票代码> [选项]
+# Fetch K-line data (Defaults to 60 daily bars)
+uvx --from ./assets pa kline <STOCK_CODE> [OPTIONS]
 
-# 获取股票基本信息
-uvx --from ./assets pa info <股票代码>
+# Fetch fundamental stock profile information
+uvx --from ./assets pa info <STOCK_CODE>
 
-# 查看帮助
+# Access built-in documentation and help menus
 uvx --from ./assets pa --help
 uvx --from ./assets pa kline --help
+
 ```
 
-### K线命令参数
+### Candlestick Command Options
 
-| 参数 | 说明 |
-|------|------|
-| `CODE` | 股票代码，支持 sh/sz/bj 前缀 |
-| `--count, -n` | K线数量 (20-250)，默认 60 根 |
-| `--period, -p` | 周期: daily/weekly/monthly，默认 daily（日线） |
-| `--market, -m` | 手动指定同花顺 market 编号 |
-| `--compact, -c` | 紧凑输出（无缩进） |
+| Option | Description |
+| --- | --- |
+| `CODE` | Stock code (supports `sh`/`sz`/`bj` prefixes) |
+| `--count, -n` | Number of candlesticks (`20`–`250`), default: `60` |
+| `--period, -p` | Timeframe interval: `daily`/`weekly`/`monthly`, default: `daily` |
+| `--market, -m` | Manually override Flush (同花顺) market ID |
+| `--compact, -c` | Minimize and compress JSON output (removes indentation) |
 
-### 示例
+### Usage Examples
 
 ```bash
-# 默认：日K 60根
+# Default: 60 Daily bars
 uvx --from ./assets pa kline 600000
 
-# 日K 120根
+# 120 Daily bars
 uvx --from ./assets pa kline 000021 -n 120
 
-# 周K 60根
+# 60 Weekly bars
 uvx --from ./assets pa kline 601919 -p weekly
 
-# 月K 80根
+# 80 Monthly bars
 uvx --from ./assets pa kline 000021 -n 80 -p monthly
 
-# 紧凑输出
+# Minified compact JSON output
 uvx --from ./assets pa kline 600000 -c
 
-# 获取股票信息
+# Get specific stock information
 uvx --from ./assets pa info 600000
+
 ```
 
-## 输出示例
+---
+
+## 📊 JSON Output Schema
 
 ```json
 {
@@ -118,46 +135,53 @@ uvx --from ./assets pa info 600000
     }
   ]
 }
+
 ```
 
-## 字段说明
+### Field Definitions
 
-| 字段 | 说明 |
-|------|------|
-| `ema20` | 20日指数移动平均线 |
-| `ema20_slope` | EMA20 斜率（百分比变化） |
-| `ema20_distance` | 收盘价距EMA20的距离（百分比） |
-| `body_ratio` | 实体占K线总长度的比例 |
-| `upper_wick_ratio` | 上影线占比 |
-| `lower_wick_ratio` | 下影线占比 |
-| `close_position` | 收盘价在K线中的位置（0=最低，1=最高） |
-| `bar_type` | K线形态分类 |
-| `gap` | 跳空缺口（gap_up / gap_down） |
-| `limit` | 涨跌停标记（limit_up / limit_down） |
+| Field | Definition |
+| --- | --- |
+| `ema20` | 20-period Exponential Moving Average |
+| `ema20_slope` | EMA20 slope representing percentage rate of change |
+| `ema20_distance` | Percentage distance from the closing price to the EMA20 |
+| `body_ratio` | Ratio of the candlestick body relative to the entire high-low range |
+| `upper_wick_ratio` | Ratio of the upper shadow line |
+| `lower_wick_ratio` | Ratio of the lower shadow line |
+| `close_position` | Relative closing price position within the bar (`0` = absolute low, `1` = absolute high) |
+| `bar_type` | Calculated price action pattern classification |
+| `gap` | Dynamic price gaps (`gap_up` / `gap_down`) |
+| `limit` | Locked limit board tags (`limit_up` / `limit_down`) |
 
-## K线形态分类
+---
 
-| 形态 | 说明 |
-|------|------|
-| `trend_bull` | 趋势阳线：实体>=60%，收盘位置>=50% |
-| `trend_bear` | 趋势阴线：实体>=60%，收盘位置<=50% |
-| `signal_bull` | 看涨信号：下影线>实体，收盘位置>40% |
-| `signal_bear` | 看跌信号：上影线>实体，收盘位置<60% |
-| `inside_bar` | 内包线：高点<前高，低点>前低 |
-| `outside_bar` | 外包线：高点>前高，低点<前低 |
-| `doji` | 十字星：实体占比<10% |
-| `neutral` | 中性：不符合以上条件 |
+## 🕯️ Price Action Classifications
 
-## 为什么选择 python-tool-skill 架构？
+| Pattern Type | Technical Conditions |
+| --- | --- |
+| `trend_bull` | **Trend Bullish:** Body $\ge$ 60%, closing position $\ge$ 50% |
+| `trend_bear` | **Trend Bearish:** Body $\ge$ 60%, closing position $\le$ 50% |
+| `signal_bull` | **Signal Bullish (Pinbar):** Lower wick > body, closing position > 40% |
+| `signal_bear` | **Signal Bearish (Pinbar):** Upper wick > body, closing position < 60% |
+| `inside_bar` | **Inside Bar:** Current High < Previous High, Current Low > Previous Low |
+| `outside_bar` | **Outside Bar:** Current High > Previous High, Current Low < Previous Low |
+| `doji` | **Doji Star:** Candlestick body ratio < 10% |
+| `neutral` | **Neutral:** Price action does not satisfy any pattern criteria above |
 
-基于 [Al McClelland 的文章](https://almcc.me/blog/python-cli-skills/)，python-tool-skill 相比 MCP 服务器有以下优势：
+---
 
-- **无需管理虚拟环境**：uvx 自动处理包隔离
-- **可独立测试**：工具就是 CLI，可直接在终端运行
-- **渐进式发现**：通过 `--help` 按需加载，节省 ~94% tokens
-- **可移植**：任何支持 CLI 的 agent 都能使用
+## 💡 Why python-tool-skill Architecture?
 
-## 参考
+Inspired by [Al McClelland's framework](https://almcc.me/blog/python-cli-skills/), adopting a native `python-tool-skill` architecture offers massive advantages over typical MCP (Model Context Protocol) servers:
 
-- [An Alternative to MCP: Python CLI-Based Agent Skills](https://almcc.me/blog/python-cli-skills/)
-- [uv 官方文档](https://docs.astral.sh/uv/)
+* **Zero Environment Hell:** `uvx` isolates and executes packages dynamically out-of-the-box.
+* **Independent Testing Ecosystem:** The core skills are simple CLI commands that can be fully simulated and verified right inside your terminal.
+* **Progressive Discovery Optimization:** By querying sub-menus only via `--help` variables, it trims prompt tokens by up to **94%**.
+* **Universal Portability:** Works out of the box with any advanced AI agent capable of invoking a standard command-line interface.
+
+---
+
+## 🔗 References
+
+* [An Alternative to MCP: Python CLI-Based Agent Skills](https://almcc.me/blog/python-cli-skills/)
+* [Official Astral uv Documentation](https://docs.astral.sh/uv/)
