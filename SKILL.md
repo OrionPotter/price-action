@@ -33,17 +33,33 @@ uvx --from ./assets pa kline <股票代码> [选项]
 ```
 
 参数说明：
-- 股票代码：6位数字或带前缀（sh/sz/bj），如 `600000`、`sh600000`
+- 股票代码：支持 A股 / 港股 / 美股，以及前缀形式
+  - A股：6位数字或带前缀（sh/sz/bj），如 `600000`、`sh600000`
+  - 港股：5位数字或带前缀（hk），如 `00700`、`01919`、`hk01919`
+  - 美股：字母代码或带前缀（us），如 `AAPL`、`MSFT`、`usAAPL`
 - `--count, -n`：K线数量 (20-250)，默认 60
 - `--period, -p`：周期 `daily`/`weekly`/`monthly`，默认 daily
+- `--market-type`：市场类型 `auto`/`cn`/`hk`/`us`，默认 `auto`
+- `--source`：数据源 `auto`/`ths`/`tencent`/`eastmoney`
 - `--compact, -c`：紧凑输出（无缩进）
 
 示例：
 ```bash
+# A股
 uvx --from ./assets pa kline 601919              # 中远海控最近60根日K
 uvx --from ./assets pa kline 601919 -n 120       # 中远海控120根日K
 uvx --from ./assets pa kline 601919 -p weekly    # 中远海控60根周K
 uvx --from ./assets pa info 601919               # 获取股票基本信息
+
+# 港股
+uvx --from ./assets pa kline 01919 --market-type hk
+uvx --from ./assets pa kline 01919 --market-type hk -p weekly
+uvx --from ./assets pa info 01919 --market-type hk
+
+# 美股
+uvx --from ./assets pa kline AAPL --market-type us
+uvx --from ./assets pa kline AAPL --market-type us -p weekly
+uvx --from ./assets pa info AAPL --market-type us
 ```
 
 输出 JSON 格式，包含开高低收量等基础数据及多种计算字段。字段为英文命名，分析输出时必须翻译为中文（见下方对照表）。
